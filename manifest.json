@@ -1,1 +1,138 @@
-
+{
+  "name": "FD Nuvio Super Providers",
+  "version": "1.0.1",
+  "scrapers": [
+    {
+      "id": "Anichi",
+      "name": "Anichi",
+      "description": "Anichi Anime",
+      "version": "1.0.0",
+      "author": "Phisher",
+      "supportedTypes": ["anime"],
+      "filename": "src/providers/anichi.js",
+      "enabled": true,
+      "formats": ["mp4", "mkv"],
+      "contentLanguage": ["en"]
+    },
+    {
+      "id": "AnimePahe",
+      "name": "AnimePahe",
+      "description": "AnimePahe",
+      "version": "1.0.0",
+      "author": "Phisher",
+      "supportedTypes": ["anime"],
+      "filename": "src/providers/animepahe.js",
+      "enabled": true,
+      "formats": ["mp4", "mkv"],
+      "contentLanguage": ["en"]
+    },
+    {
+      "id": "Cinefreak",
+      "name": "Cinefreak",
+      "description": "Cinefreak Movies & TV",
+      "version": "1.0.0",
+      "author": "Phisher",
+      "supportedTypes": ["movie", "tv"],
+      "filename": "src/providers/cinefreak.js",
+      "enabled": true,
+      "formats": ["mp4", "mkv"],
+      "contentLanguage": ["en"]
+    },
+    {
+      "id": "FourKHDHub",
+      "name": "FourKHDHub",
+      "description": "4K HD Movies & TV Shows",
+      "version": "1.0.0",
+      "author": "Phisher",
+      "supportedTypes": ["movie", "tv"],
+      "filename": "src/providers/fourkHDhub.js",
+      "enabled": true,
+      "formats": ["mp4", "mkv"],
+      "contentLanguage": ["en"]
+    },
+    {
+      "id": "Goojara",
+      "name": "Goojara",
+      "description": "Goojara Movies & TV",
+      "version": "1.0.0",
+      "author": "Phisher",
+      "supportedTypes": ["movie", "tv"],
+      "filename": "src/providers/goojara.js",
+      "enabled": true,
+      "formats": ["mp4", "mkv"],
+      "contentLanguage": ["en"]
+    },
+    {
+      "id": "HDhub4u",
+      "name": "HDhub4u",
+      "description": "HDhub4u Movies & TV",
+      "version": "1.0.0",
+      "author": "Phisher",
+      "supportedTypes": ["movie", "tv"],
+      "filename": "src/providers/hdhub4u.js",
+      "enabled": true,
+      "formats": ["mp4", "mkv"],
+      "contentLanguage": ["en"]
+    },
+    {
+      "id": "Kickassanime",
+      "name": "Kickassanime",
+      "description": "Kickassanime",
+      "version": "1.0.0",
+      "author": "Phisher",
+      "supportedTypes": ["anime"],
+      "filename": "src/providers/kickassanime.js",
+      "enabled": true,
+      "formats": ["mp4", "mkv"],
+      "contentLanguage": ["en"]
+    },
+    {
+      "id": "MovieBoxProvider",
+      "name": "MovieBox",
+      "description": "MovieBox Provider",
+      "version": "1.0.0",
+      "author": "Phisher",
+      "supportedTypes": ["movie", "tv"],
+      "filename": "src/providers/moviebox.js",
+      "enabled": true,
+      "formats": ["mp4", "mkv"],
+      "contentLanguage": ["en"]
+    },
+    {
+      "id": "StreamPlay",
+      "name": "StreamPlay",
+      "description": "StreamPlay",
+      "version": "1.0.0",
+      "author": "Phisher",
+      "supportedTypes": ["movie", "tv"],
+      "filename": "src/providers/streamplay.js",
+      "enabled": true,
+      "formats": ["mp4", "mkv"],
+      "contentLanguage": ["en"]
+    },
+    {
+      "id": "SuperStream",
+      "name": "SuperStream",
+      "description": "SuperStream",
+      "version": "1.0.0",
+      "author": "Phisher",
+      "supportedTypes": ["movie", "tv"],
+      "filename": "src/providers/superstream.js",
+      "enabled": true,
+      "formats": ["mp4", "mkv"],
+      "contentLanguage": ["en"]
+    },
+    {
+      "id": "YTS",
+      "name": "YTS",
+      "description": "YTS Movies",
+      "version": "1.0.0",
+      "author": "Phisher",
+      "supportedTypes": ["movie"],
+      "filename": "src/providers/yts.js",
+      "enabled": true,
+      "formats": ["mp4", "mkv"],
+      "contentLanguage": ["en"]
+    }
+  ]
+}
