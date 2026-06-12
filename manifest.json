@@ -1,102 +1,98 @@
-{
-  "name": "FD Nuvio Super Providers",
-  "version": "1.0.2",
-  "scrapers": [
-    {
-      "id": "Anichi",
-      "name": "Anichi",
-      "description": "Anichi Anime",
-      "version": "1.0.0",
-      "author": "Phisher",
-      "supportedTypes": ["anime"],
-      "filename": "src/providers/anichi.js",
-      "enabled": true,
-      "formats": ["mp4", "mkv"],
-      "contentLanguage": ["en"]
-    },
-    {
-      "id": "AnimePahe",
-      "name": "AnimePahe",
-      "description": "AnimePahe",
-      "version": "1.0.0",
-      "author": "Phisher",
-      "supportedTypes": ["anime"],
-      "filename": "src/providers/animepahe.js",
-      "enabled": true,
-      "formats": ["mp4", "mkv"],
-      "contentLanguage": ["en"]
-    },
-    {
-      "id": "Cinefreak",
-      "name": "Cinefreak",
-      "description": "Cinefreak Movies & TV",
-      "version": "1.0.0",
-      "author": "Phisher",
-      "supportedTypes": ["movie", "tv"],
-      "filename": "src/providers/cinefreak.js",
-      "enabled": true,
-      "formats": ["mp4", "mkv"],
-      "contentLanguage": ["en"]
-    },
-    {
-      "id": "FourKHDHub",
-      "name": "FourKHDHub",
-      "description": "4K HD Movies & TV Shows",
-      "version": "1.0.0",
-      "author": "Phisher",
-      "supportedTypes": ["movie", "tv"],
-      "filename": "src/providers/fourkHDhub.js",
-      "enabled": true,
-      "formats": ["mp4", "mkv"],
-      "contentLanguage": ["en"]
-    },
-    {
-      "id": "Goojara",
-      "name": "Goojara",
-      "description": "Goojara Movies & TV",
-      "version": "1.0.0",
-      "author": "Phisher",
-      "supportedTypes": ["movie", "tv"],
-      "filename": "src/providers/goojara.js",
-      "enabled": true,
-      "formats": ["mp4", "mkv"],
-      "contentLanguage": ["en"]
-    },
-    {
-      "id": "HiAnime",
-      "name": "HiAnime",
-      "description": "HiAnime Anime Streaming",
-      "version": "1.0.0",
-      "author": "Phisher",
-      "supportedTypes": ["anime"],
-      "filename": "src/providers/hianime.js",
-      "enabled": true,
-      "formats": ["mp4", "mkv"],
-      "contentLanguage": ["en"]
-    },
-    {
-      "id": "Kickassanime",
-      "name": "Kickassanime",
-      "description": "Kickassanime",
-      "version": "1.0.0",
-      "author": "Phisher",
-      "supportedTypes": ["anime"],
-      "filename": "src/providers/kickassanime.js",
-      "enabled": true,
-      "formats": ["mp4", "mkv"],
-      "contentLanguage": ["en"]
-    },
-    {
-      "id": "MultiMovies",
-      "name": "MultiMovies",
-      "description": "MultiMovies Movies & TV",
-      "version": "1.0.0",
-      "author": "Phisher",
-      "supportedTypes": ["movie", "tv"],
-      "filename": "src/providers/multimovies.js",
-      "enabled": true,
-      "formats": ["mp4", "mkv"],
-      "contentLanguage": ["en"]
-    }
-  ]
-}
+[
+  {
+    "id": "Anichi",
+    "name": "Anichi",
+    "description": "Anichi Anime",
+    "version": "1.0.0",
+    "author": "Phisher",
+    "supportedTypes": ["anime"],
+    "filename": "src/providers/anichi.js",
+    "enabled": true,
+    "formats": ["mp4", "mkv"],
+    "contentLanguage": ["en"]
+  },
+  {
+    "id": "AnimePahe",
+    "name": "AnimePahe",
+    "description": "AnimePahe",
+    "version": "1.0.0",
+    "author": "Phisher",
+    "supportedTypes": ["anime"],
+    "filename": "src/providers/animepahe.js",
+    "enabled": true,
+    "formats": ["mp4", "mkv"],
+    "contentLanguage": ["en"]
+  },
+  {
+    "id": "Cinefreak",
+    "name": "Cinefreak",
+    "description": "Cinefreak Movies & TV",
+    "version": "1.0.0",
+    "author": "Phisher",
+    "supportedTypes": ["movie", "tv"],
+    "filename": "src/providers/cinefreak.js",
+    "enabled": true,
+    "formats": ["mp4", "mkv"],
+    "contentLanguage": ["en"]
+  },
+  {
+    "id": "FourKHDHub",
+    "name": "FourKHDHub",
+    "description": "4K HD Movies & TV Shows",
+    "version": "1.0.0",
+    "author": "Phisher",
+    "supportedTypes": ["movie", "tv"],
+    "filename": "src/providers/fourkHDhub.js",
+    "enabled": true,
+    "formats": ["mp4", "mkv"],
+    "contentLanguage": ["en"]
+  },
+  {
+    "id": "Goojara",
+    "name": "Goojara",
+    "description": "Goojara Movies & TV",
+    "version": "1.0.0",
+    "author": "Phisher",
+    "supportedTypes": ["movie", "tv"],
+    "filename": "src/providers/goojara.js",
+    "enabled": true,
+    "formats": ["mp4", "mkv"],
+    "contentLanguage": ["en"]
+  },
+  {
+    "id": "HiAnime",
+    "name": "HiAnime",
+    "description": "HiAnime Anime Streaming",
+    "version": "1.0.0",
+    "author": "Phisher",
+    "supportedTypes": ["anime"],
+    "filename": "src/providers/hianime.js",
+    "enabled": true,
+    "formats": ["mp4", "mkv"],
+    "contentLanguage": ["en"]
+  },
+  {
+    "id": "Kickassanime",
+    "name": "Kickassanime",
+    "description": "Kickassanime",
+    "version": "1.0.0",
+    "author": "Phisher",
+    "supportedTypes": ["anime"],
+    "filename": "src/providers/kickassanime.js",
+    "enabled": true,
+    "formats": ["mp4", "mkv"],
+    "contentLanguage": ["en"]
+  },
+  {
+    "id": "MultiMovies",
+    "name": "MultiMovies",
+    "description": "MultiMovies Movies & TV",
+    "version": "1.0.0",
+    "author": "Phisher",
+    "supportedTypes": ["movie", "tv"],
+    "filename": "src/providers/multimovies.js",
+    "enabled": true,
+    "formats": ["mp4", "mkv"],
+    "contentLanguage": ["en"]
+  }
+]
