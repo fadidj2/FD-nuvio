@@ -1,11 +1,15 @@
 /**
- * StreamPlay Scraper for Nuvio
+ * StreamPlay Enhanced Scraper for Nuvio
  * Ported from: phisher98/cloudstream-extensions-phisher
  * 
- * This scraper provides movie and TV show streams using TMDB API
- * and multiple extraction endpoints.
+ * Features:
+ * - TMDB API search by title
+ * - Cloudstream-like metadata fetching
+ * - Smart caching for performance
+ * - Multiple extraction endpoints
+ * - Stremio Cinemeta integration
  * 
- * Author: Phisher98 (Original), Ported to Nuvio
+ * Author: Phisher98 (Original), Enhanced for Nuvio
  * License: GNU GPLv3
  */
 
@@ -15,215 +19,220 @@ const TMDB_API_KEY = "1865f43a0549ca50d341dd9ab8b29f49";
 const OFFICIAL_TMDB_URL = "https://api.themoviedb.org/3";
 const CINEMETA_API = "https://aiometadata.elfhosted.com/stremio/b7cb164b-074b-41d5-b458-b3a834e197bb";
 
-// Cache management
-let apiBaseCache = {
-  url: null,
-  timestamp: null,
-  ttl: 10 * 60 * 1000 // 10 minutes
-};
+// Enhanced cache with metadata
+let metadataCache = {};
+let searchCache = {};
+const CACHE_TTL = 60 * 60 * 1000; // 1 hour
 
 /**
- * Get the current API base URL (with fallback support)
+ * Search TMDB by title (Cloudstream-like behavior)
  */
-function getApiBase() {
+function searchTmdbByTitle(query, mediaType = "multi") {
   return new Promise((resolve) => {
+    const cacheKey = `search_${query}_${mediaType}`;
+    
     // Check cache first
-    if (apiBaseCache.url && (Date.now() - apiBaseCache.timestamp) < apiBaseCache.ttl) {
-      console.log("[StreamPlay] Using cached API base");
-      return resolve(apiBaseCache.url);
+    if (searchCache[cacheKey] && (Date.now() - searchCache[cacheKey].timestamp) < CACHE_TTL) {
+      console.log(`[StreamPlay] Using cached search results for: ${query}`);
+      return resolve(searchCache[cacheKey].data);
     }
 
-    // Try official TMDB API
-    checkConnectivity(OFFICIAL_TMDB_URL)
-      .then((isWorking) => {
-        if (isWorking) {
-          console.log("[StreamPlay] ✅ Using official TMDB API");
-          apiBaseCache = { url: OFFICIAL_TMDB_URL, timestamp: Date.now() };
-          return resolve(OFFICIAL_TMDB_URL);
-        }
-        
-        // Fallback to official if no proxy available
-        console.log("[StreamPlay] ⚠️ Falling back to official TMDB API");
-        apiBaseCache = { url: OFFICIAL_TMDB_URL, timestamp: Date.now() };
-        resolve(OFFICIAL_TMDB_URL);
+    const searchUrl = `${OFFICIAL_TMDB_URL}/search/${mediaType}?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}&language=en-US&include_adult=false&page=1`;
+    
+    fetch(searchUrl, { timeout: 8000 })
+      .then((response) => response.json())
+      .then((data) => {
+        const results = (data.results || [])
+          .filter((item) => item.poster_path || item.backdrop_path)
+          .slice(0, 20)
+          .map((item) => ({
+            id: item.id,
+            type: item.media_type || mediaType,
+            title: item.title || item.name,
+            originalTitle: item.original_title || item.original_name,
+            year: (item.release_date || item.first_air_date || "").split("-")[0],
+            poster: item.poster_path ? `https://image.tmdb.org/t/p/original${item.poster_path}` : null,
+            backdrop: item.backdrop_path ? `https://image.tmdb.org/t/p/original${item.backdrop_path}` : null,
+            rating: item.vote_average,
+            description: item.overview,
+            isMovie: item.media_type === "movie",
+            isTv: item.media_type === "tv",
+            isAnime: false // Will be detected from genres later
+          }));
+
+        // Cache results
+        searchCache[cacheKey] = { data: results, timestamp: Date.now() };
+        console.log(`[StreamPlay] Found ${results.length} search results for: ${query}`);
+        resolve(results);
       })
-      .catch(() => {
-        apiBaseCache = { url: OFFICIAL_TMDB_URL, timestamp: Date.now() };
-        resolve(OFFICIAL_TMDB_URL);
+      .catch((error) => {
+        console.error(`[StreamPlay] Search error: ${error.message}`);
+        resolve([]);
       });
   });
 }
 
 /**
- * Check if an API endpoint is accessible
+ * Fetch full media details with metadata (Cloudstream-like)
  */
-function checkConnectivity(url) {
+function fetchMediaDetails(tmdbId, mediaType) {
   return new Promise((resolve) => {
-    const testUrl = `${url}/configuration?api_key=${TMDB_API_KEY}`;
+    const cacheKey = `metadata_${tmdbId}_${mediaType}`;
     
-    fetch(testUrl, {
-      method: 'GET',
-      headers: { 'Cache-Control': 'no-cache' },
-      timeout: 2000
-    })
-      .then((response) => {
-        resolve(response.status === 200 || response.status === 304);
-      })
-      .catch(() => resolve(false));
-  });
-}
+    // Check cache first
+    if (metadataCache[cacheKey] && (Date.now() - metadataCache[cacheKey].timestamp) < CACHE_TTL) {
+      console.log(`[StreamPlay] Using cached metadata for: ${tmdbId}`);
+      return resolve(metadataCache[cacheKey].data);
+    }
 
-/**
- * Fetch media details from TMDB
- */
-function fetchTmdbMedia(tmdbId, mediaType, apiBase) {
-  return new Promise((resolve, reject) => {
-    const url = `${apiBase}/${mediaType}/${tmdbId}?api_key=${TMDB_API_KEY}&language=en-US&append_to_response=external_ids,videos,recommendations,credits`;
+    const type = mediaType === "movie" ? "movie" : "tv";
+    const detailUrl = `${OFFICIAL_TMDB_URL}/${type}/${tmdbId}?api_key=${TMDB_API_KEY}&language=en-US&append_to_response=external_ids,videos,credits,recommendations,images`;
     
-    fetch(url, { timeout: 8000 })
+    fetch(detailUrl, { timeout: 10000 })
       .then((response) => response.json())
       .then((data) => {
-        if (data.id) {
-          resolve(data);
-        } else {
-          reject(new Error("Invalid TMDB response"));
-        }
+        const isAnime = (data.genres || []).some((g) => g.name === "Animation") && 
+                       (data.original_language === "ja" || data.original_language === "zh");
+        
+        const metadata = {
+          id: data.id,
+          type: type,
+          title: data.title || data.name,
+          originalTitle: data.original_title || data.original_name,
+          year: (data.release_date || data.first_air_date || "").split("-")[0],
+          poster: data.poster_path ? `https://image.tmdb.org/t/p/original${data.poster_path}` : null,
+          backdrop: data.backdrop_path ? `https://image.tmdb.org/t/p/original${data.backdrop_path}` : null,
+          rating: data.vote_average,
+          description: data.overview,
+          genres: (data.genres || []).map((g) => g.name),
+          imdbId: data.external_ids?.imdb_id,
+          tvdbId: data.external_ids?.tvdb_id,
+          isAnime: isAnime,
+          isMovie: type === "movie",
+          isTv: type === "tv",
+          runtime: data.runtime,
+          status: data.status,
+          seasons: data.seasons ? data.seasons.length : 0,
+          actors: (data.credits?.cast || []).slice(0, 5).map((a) => ({
+            name: a.name,
+            character: a.character
+          })),
+          recommendations: (data.recommendations?.results || [])
+            .slice(0, 5)
+            .map((r) => ({
+              id: r.id,
+              title: r.title || r.name,
+              type: r.media_type
+            }))
+        };
+
+        // Cache metadata
+        metadataCache[cacheKey] = { data: metadata, timestamp: Date.now() };
+        resolve(metadata);
       })
-      .catch((error) => reject(error));
+      .catch((error) => {
+        console.error(`[StreamPlay] Metadata fetch error: ${error.message}`);
+        resolve(null);
+      });
   });
 }
 
 /**
- * Search for media on TMDB
+ * Extract streams from Stremio Cinemeta API
  */
-function searchTmdb(query, mediaType, apiBase) {
+function fetchCinemetaStreams(imdbId, type = "movie", season, episode) {
   return new Promise((resolve) => {
-    const searchUrl = `${apiBase}/search/${mediaType}?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}&language=en-US`;
-    
-    fetch(searchUrl, { timeout: 5000 })
+    if (!imdbId) {
+      return resolve([]);
+    }
+
+    const cinetype = type === "tv" ? "series" : "movie";
+    const streamUrl = type === "tv" 
+      ? `${CINEMETA_API}/stream/${cinetype}/${imdbId}:${season}:${episode}.json`
+      : `${CINEMETA_API}/stream/${cinetype}/${imdbId}.json`;
+
+    fetch(streamUrl, { timeout: 10000 })
       .then((response) => response.json())
       .then((data) => {
-        resolve(data.results || []);
-      })
-      .catch(() => resolve([]));
-  });
-}
-
-/**
- * Extract streams from various sources
- */
-function extractStreams(sourceUrl, headers = {}) {
-  return new Promise((resolve) => {
-    const defaultHeaders = {
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-      'Referer': 'https://www.google.com/',
-      ...headers
-    };
-
-    fetch(sourceUrl, {
-      headers: defaultHeaders,
-      timeout: 10000
-    })
-      .then((response) => {
-        if (!response.ok) {
-          return resolve([]);
-        }
-        return response.text();
-      })
-      .then((html) => {
         const streams = [];
 
-        // Extract HLS streams
-        const m3u8Match = html.match(/["']([^"']*\.m3u8[^"']*)["']/);
-        if (m3u8Match && m3u8Match[1]) {
-          streams.push({
-            name: "StreamPlay - HLS",
-            title: "StreamPlay HLS Stream",
-            url: m3u8Match[1].startsWith('http') ? m3u8Match[1] : sourceUrl.split('/').slice(0, 3).join('/') + m3u8Match[1],
-            quality: "1080p",
-            size: "Unknown",
-            headers: defaultHeaders,
-            provider: "streamplay"
+        if (data.streams) {
+          data.streams.forEach((stream, index) => {
+            const isHls = stream.url?.includes(".m3u8");
+            
+            streams.push({
+              name: `StreamPlay - ${stream.title || `Source ${index + 1}`}`,
+              title: stream.title || `Stream ${index + 1}`,
+              url: stream.url || stream.externalUrl || "#",
+              quality: stream.quality || (isHls ? "Variable" : "720p"),
+              size: "Unknown",
+              headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                'Referer': 'https://www.google.com/'
+              },
+              provider: "streamplay",
+              isHls: isHls,
+              type: stream.type || "http"
+            });
           });
         }
 
-        // Extract MP4 streams
-        const mp4Match = html.match(/["']([^"']*\.mp4[^"']*)["']/);
-        if (mp4Match && mp4Match[1]) {
-          streams.push({
-            name: "StreamPlay - MP4",
-            title: "StreamPlay MP4 Stream",
-            url: mp4Match[1].startsWith('http') ? mp4Match[1] : sourceUrl.split('/').slice(0, 3).join('/') + mp4Match[1],
-            quality: "720p",
-            size: "Unknown",
-            headers: defaultHeaders,
-            provider: "streamplay"
+        if (data.meta?.videos) {
+          data.meta.videos.forEach((video) => {
+            streams.push({
+              name: `StreamPlay - Torrent: ${video.title}`,
+              title: video.title,
+              url: video.url || "#",
+              quality: video.quality || "1080p",
+              size: video.size || "Unknown",
+              headers: {},
+              provider: "streamplay",
+              type: "torrent"
+            });
           });
         }
 
+        console.log(`[StreamPlay] Found ${streams.length} Cinemeta streams for ${imdbId}`);
         resolve(streams);
       })
-      .catch(() => resolve([]));
+      .catch((error) => {
+        console.error(`[StreamPlay] Cinemeta fetch error: ${error.message}`);
+        resolve([]);
+      });
   });
 }
 
 /**
- * Main scraper function - Required for Nuvio
+ * Main scraper function for direct TMDB ID input
+ * Maintains backward compatibility
  */
 function getStreams(tmdbId, mediaType, seasonNum, episodeNum) {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     if (!tmdbId) {
       return resolve([]);
     }
 
     console.log(`[StreamPlay] Fetching ${mediaType} ${tmdbId}`);
 
-    getApiBase()
-      .then((apiBase) => fetchTmdbMedia(tmdbId, mediaType, apiBase))
+    // Fetch full metadata first
+    fetchMediaDetails(tmdbId, mediaType)
       .then((media) => {
-        const title = media.title || media.name;
-        const imdbId = media.external_ids?.imdb_id;
-        const posterUrl = media.poster_path ? `https://image.tmdb.org/t/p/original${media.poster_path}` : null;
-
-        console.log(`[StreamPlay] Found: ${title}`);
-
-        const streams = [];
-
-        // Try Stremio Cinemeta API
-        if (imdbId) {
-          const cinetype = mediaType === 'tv' ? 'series' : 'movie';
-          const cineUrl = `${CINEMETA_API}/meta/${cinetype}/${imdbId}.json`;
-
-          fetch(cineUrl, { timeout: 5000 })
-            .then((response) => response.json())
-            .then((cineData) => {
-              if (cineData.meta && cineData.meta.streams) {
-                cineData.meta.streams.forEach((stream, index) => {
-                  streams.push({
-                    name: `StreamPlay - Stream ${index + 1}`,
-                    title: title,
-                    url: stream.url || stream.externalUrl || "#",
-                    quality: stream.quality || "1080p",
-                    size: "Unknown",
-                    headers: {
-                      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-                    },
-                    provider: "streamplay"
-                  });
-                });
-              }
-
-              console.log(`[StreamPlay] Found ${streams.length} streams`);
-              resolve(streams.length > 0 ? streams : []);
-            })
-            .catch(() => {
-              console.log("[StreamPlay] Cinemeta API failed, using fallback");
-              resolve(streams.length > 0 ? streams : []);
-            });
-        } else {
-          resolve(streams);
+        if (!media) {
+          return resolve([]);
         }
+
+        console.log(`[StreamPlay] Title: ${media.title}`);
+
+        // Get streams from Cinemeta
+        return fetchCinemetaStreams(
+          media.imdbId,
+          media.type,
+          seasonNum,
+          episodeNum
+        ).then((streams) => {
+          console.log(`[StreamPlay] Total streams found: ${streams.length}`);
+          resolve(streams.length > 0 ? streams : []);
+        });
       })
       .catch((error) => {
         console.error(`[StreamPlay] Error: ${error.message}`);
@@ -232,9 +241,84 @@ function getStreams(tmdbId, mediaType, seasonNum, episodeNum) {
   });
 }
 
+/**
+ * Enhanced search function - search by title and return Cloudstream-like results
+ * Returns array of {metadata + quick preview of streams}
+ */
+function searchStreams(query) {
+  return new Promise((resolve) => {
+    console.log(`[StreamPlay] Searching for: ${query}`);
+
+    searchTmdbByTitle(query, "multi")
+      .then((searchResults) => {
+        // Fetch full metadata for top 5 results
+        const promises = searchResults.slice(0, 5).map((result) => {
+          return fetchMediaDetails(result.id, result.type)
+            .then((metadata) => ({
+              ...result,
+              ...metadata,
+              // Indicate we have metadata loaded
+              metadataLoaded: true
+            }));
+        });
+
+        return Promise.all(promises);
+      })
+      .then((results) => {
+        console.log(`[StreamPlay] Returning ${results.length} detailed search results`);
+        resolve(results);
+      })
+      .catch((error) => {
+        console.error(`[StreamPlay] Search error: ${error.message}`);
+        resolve([]);
+      });
+  });
+}
+
+/**
+ * Get streams for a specific search result
+ * Use after user selects from searchStreams()
+ */
+function getStreamsForResult(result, seasonNum, episodeNum) {
+  return new Promise((resolve) => {
+    console.log(`[StreamPlay] Getting streams for: ${result.title}`);
+
+    fetchCinemetaStreams(result.imdbId, result.type, seasonNum, episodeNum)
+      .then((streams) => {
+        console.log(`[StreamPlay] Found ${streams.length} streams`);
+        resolve(streams);
+      })
+      .catch((error) => {
+        console.error(`[StreamPlay] Stream fetch error: ${error.message}`);
+        resolve([]);
+      });
+  });
+}
+
+/**
+ * Clear caches if needed
+ */
+function clearCaches() {
+  metadataCache = {};
+  searchCache = {};
+  console.log("[StreamPlay] Caches cleared");
+}
+
 // Export for React Native/Nuvio compatibility
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { getStreams };
+  module.exports = {
+    getStreams,
+    searchStreams,
+    getStreamsForResult,
+    fetchMediaDetails,
+    searchTmdbByTitle,
+    clearCaches
+  };
 } else {
   global.getStreams = getStreams;
+  global.searchStreams = searchStreams;
+  global.getStreamsForResult = getStreamsForResult;
+  global.fetchMediaDetails = fetchMediaDetails;
+  global.searchTmdbByTitle = searchTmdbByTitle;
+  global.clearCaches = clearCaches;
 }
