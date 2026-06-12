@@ -1,6 +1,6 @@
 {
   "name": "FD Nuvio Super Providers",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "scrapers": [
     {
       "id": "Anichi",
@@ -96,6 +96,18 @@
       "filename": "src/providers/multimovies.js",
       "enabled": true,
       "formats": ["mp4", "mkv"],
+      "contentLanguage": ["en"]
+    },
+    {
+      "id": "StreamPlay",
+      "name": "StreamPlay",
+      "description": "StreamPlay Movies & TV with TMDB and Cinemeta Support",
+      "version": "1.0.0",
+      "author": "Phisher98 (Original), Ported to Nuvio",
+      "supportedTypes": ["movie", "tv"],
+      "filename": "src/providers/streamplay.js",
+      "enabled": true,
+      "formats": ["mp4", "mkv", "m3u8"],
       "contentLanguage": ["en"]
     }
   ]
